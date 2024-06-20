@@ -1,4 +1,4 @@
-// src/Login.js
+// Login.js
 import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
 import styled from '@emotion/styled';
@@ -51,16 +51,21 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.auth.signIn({
-      email: `${username}@example.com`,
-      password,
-    });
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setError('');
+    const { data } = await supabase
+      .from('users')
+      .select()
+      .eq('username', username)
+      .eq('password', password)
+      .single();
+
+    if (!data) {
+      setError('Invalid username or password.');
+      return;
     }
+
+    console.log('User logged in successfully:', data);
+    setError('');
   };
 
   return (

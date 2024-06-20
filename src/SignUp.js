@@ -1,4 +1,4 @@
-// src/SignUp.js
+// SignUp.js
 import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
 import styled from '@emotion/styled';
@@ -51,15 +51,32 @@ const SignUp = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
-    const { user, error } = await supabase.auth.signUp({
-      email: `${username}@example.com`,
-      password,
-    });
+
+    // Check if username already exists
+    const { data, error } = await supabase
+      .from('users')
+      .select()
+      .eq('username', username);
 
     if (error) {
       setError(error.message);
+      return;
+    }
+
+    if (data.length > 0) {
+      setError('Username is already taken.');
+      return;
+    }
+
+    // Create new user
+    const { user, error: signUpError } = await supabase
+      .from('users')
+      .insert([{ username, password }]);
+
+    if (signUpError) {
+      setError(signUpError.message);
     } else {
-      await supabase.from('profiles').insert([{ id: user.id, username }]);
+      console.log('User signed up successfully:', user);
       setError('');
     }
   };
